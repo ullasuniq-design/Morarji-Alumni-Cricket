@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MCL Test</title>
+</head>
+<body>
+
+<h1 style="color:red">NEW VERSION LOADED</h1>
+
+<input id="cap" placeholder="Enter CAP Number">
+
+<button onclick="searchPlayer()">Search</button>
+
+<div id="result"></div>
+
+<script>
+
+function searchPlayer(){
+
+    let cap =
+       document.getElementById("cap").value;
+
+    document.getElementById("result").innerHTML =
+       "You searched CAP #: " + cap;
+}
+
+</script>
+
+</body>
+</html>
