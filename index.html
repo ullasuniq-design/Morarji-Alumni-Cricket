@@ -1,164 +1,274 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>MCL Player Stats</title>
 
 <style>
+
 body{
     font-family:Arial, sans-serif;
-    max-width:500px;
+    max-width:700px;
     margin:auto;
-    padding:15px;
     background:#f5f5f5;
+    padding:15px;
 }
 
-h2{
+h1{
     text-align:center;
-    margin-bottom:20px;
+}
+
+.search-box{
+    text-align:center;
+    margin:20px 0;
 }
 
 input{
-    width:70%;
     padding:10px;
+    width:200px;
     font-size:16px;
 }
 
 button{
     padding:10px 15px;
-    font-size:16px;
     cursor:pointer;
 }
 
-#result{
-    margin-top:20px;
-    background:white;
-    padding:15px;
-    border-radius:8px;
-}
-
-.row{
+.profile{
     display:flex;
-    justify-content:space-between;
-    padding:6px 0;
-    border-bottom:1px solid #eee;
+    gap:15px;
+    margin-bottom:20px;
 }
 
-.label{
-    font-weight:bold;
+.profile img{
+    width:120px;
+    height:150px;
+    object-fit:cover;
+    border:1px solid #ccc;
+    background:#eee;
 }
 
-.value{
-    color:#1565c0;
+.details{
+    flex:1;
+}
+
+.details table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.details td{
+    padding:6px;
+    border-bottom:1px solid #ddd;
 }
 
 .section{
-    margin-top:15px;
-    font-size:18px;
+    margin-top:25px;
+}
+
+.section h2{
+    border-bottom:2px solid #333;
+    padding-bottom:5px;
+}
+
+.stats-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.stats-table td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+
+.stats-table td:last-child{
+    text-align:right;
     font-weight:bold;
 }
+
 </style>
 </head>
 
 <body>
 
-<h2>Morarji School Alumni Cricket</h2>
+<h1>Morarji School Alumni Cricket</h1>
 
-<input id="capInput" placeholder="Enter CAP #" />
-<button onclick="searchPlayer()">Search</button>
+<div class="search-box">
+    <input type="number"
+           id="capNumber"
+           placeholder="Enter CAP Number">
 
-<div id="result"></div>
+    <button onclick="searchPlayer()">Search</button>
+</div>
+
+<div id="playerArea" style="display:none">
+
+    <div class="profile">
+
+        <img id="playerPhoto">
+
+        <div class="details">
+            <table>
+                <tr><td>Cap #</td><td id="cap"></td></tr>
+                <tr><td>Name</td><td id="name"></td></tr>
+                <tr><td>Batch</td><td id="batch"></td></tr>
+                <tr><td>Seasons</td><td id="season"></td></tr>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2>Total Match Summary</h2>
+
+        <table class="stats-table">
+
+            <tr><td>Match</td><td id="match"></td></tr>
+            <tr><td>Innings</td><td id="innings"></td></tr>
+            <tr><td>Runs</td><td id="runs"></td></tr>
+            <tr><td>Best</td><td id="best"></td></tr>
+            <tr><td>Average</td><td id="avg"></td></tr>
+            <tr><td>4s</td><td id="fours"></td></tr>
+            <tr><td>6s</td><td id="sixes"></td></tr>
+            <tr><td>Strike Rate</td><td id="sr"></td></tr>
+            <tr><td>Wickets</td><td id="wickets"></td></tr>
+            <tr><td>Overs</td><td id="overs"></td></tr>
+            <tr><td>Bowling Avg</td><td id="bavg"></td></tr>
+            <tr><td>Best Bowling</td><td id="bb"></td></tr>
+            <tr><td>Economy</td><td id="eco"></td></tr>
+
+        </table>
+
+    </div>
+
+</div>
 
 <script>
 
-let playersData = [];
-let statsData = [];
+let players = [];
+let stats = [];
 
-// Load Players CSV
-fetch('players.csv')
-.then(r => r.text())
-.then(text => {
-    playersData = csvToArray(text);
+/* Load CSV files */
+
+Promise.all([
+    fetch("players.csv").then(r => r.text()),
+    fetch("stats.csv").then(r => r.text())
+])
+.then(([playersCSV, statsCSV]) => {
+
+    players = csvToJSON(playersCSV);
+    stats = csvToJSON(statsCSV);
+
+    console.log("CSV Loaded");
 });
 
-// Load Stats CSV
-fetch('stats.csv')
-.then(r => r.text())
-.then(text => {
-    statsData = csvToArray(text);
-});
+function csvToJSON(csv){
 
-function csvToArray(str){
-    const rows = str.trim().split('\n');
-    const headers = rows[0].split(',');
+    const rows = csv.trim().split("\n");
+    const headers = rows[0].split(",");
 
     return rows.slice(1).map(row => {
-        const values = row.split(',');
-        return headers.reduce((obj, header, index) => {
-            obj[header.trim()] = values[index]?.trim();
-            return obj;
-        }, {});
+
+        const cols = row.split(",");
+
+        let obj = {};
+
+        headers.forEach((h,i)=>{
+            obj[h.trim()] = cols[i]?.trim();
+        });
+
+        return obj;
     });
 }
 
 function searchPlayer(){
 
-    const cap = document.getElementById("capInput").value.trim();
+    const cap =
+        document.getElementById("capNumber").value.trim();
 
-    const player = playersData.find(
-        p => p["CAP"] === cap || p["CAP #"] === cap
-    );
+    const player =
+        players.find(
+            p => p["CAP #"] === cap
+        );
 
-    const stat = statsData.find(
-        s => s["CAP"] === cap || s["CAP #"] === cap
-    );
+    const stat =
+        stats.find(
+            s => s["CAP #"] === cap
+        );
 
     if(!player){
-        document.getElementById("result").innerHTML =
-            "<h3>Player not found</h3>";
+        alert("Player not found");
         return;
     }
 
-    document.getElementById("result").innerHTML = `
+    document.getElementById("playerArea")
+        .style.display="block";
 
-        <div class="section">Player Information</div>
+    document.getElementById("cap").innerText =
+        player["CAP #"];
 
-        <div class="row">
-            <span class="label">CAP #</span>
-            <span class="value">${player["CAP #"] || player["CAP"]}</span>
-        </div>
+    document.getElementById("name").innerText =
+        player["Player"];
 
-        <div class="row">
-            <span class="label">Player</span>
-            <span class="value">${player["Player"]}</span>
-        </div>
+    document.getElementById("batch").innerText =
+        player["Batch"];
 
-        <div class="row">
-            <span class="label">Batch</span>
-            <span class="value">${player["Batch"]}</span>
-        </div>
+    document.getElementById("season").innerText =
+        player["Played Seasons"];
 
-        <div class="row">
-            <span class="label">Season</span>
-            <span class="value">${player["Played Seasons"]}</span>
-        </div>
+    document.getElementById("match").innerText =
+        stat?.["Match"] || "-";
 
-        <div class="section">Career Stats</div>
+    document.getElementById("innings").innerText =
+        stat?.["Innings"] || "-";
 
-        <div class="row"><span>Matches</span><span>${stat?.Match || '-'}</span></div>
-        <div class="row"><span>Innings</span><span>${stat?.Innings || '-'}</span></div>
-        <div class="row"><span>Runs</span><span>${stat?.Runs || '-'}</span></div>
-        <div class="row"><span>Best</span><span>${stat?.Best || '-'}</span></div>
-        <div class="row"><span>Average</span><span>${stat?.Avg || '-'}</span></div>
-        <div class="row"><span>4s</span><span>${stat?.Fours || '-'}</span></div>
-        <div class="row"><span>6s</span><span>${stat?.Sixes || '-'}</span></div>
-        <div class="row"><span>Strike Rate</span><span>${stat?.SR || '-'}</span></div>
-        <div class="row"><span>Wickets</span><span>${stat?.Wickets || '-'}</span></div>
-        <div class="row"><span>Overs</span><span>${stat?.Overs || '-'}</span></div>
+    document.getElementById("runs").innerText =
+        stat?.["Runs"] || "-";
 
-    `;
+    document.getElementById("best").innerText =
+        stat?.["Best"] || "-";
+
+    document.getElementById("avg").innerText =
+        stat?.["Avg"] || "-";
+
+    document.getElementById("fours").innerText =
+        stat?.["Fours"] || "-";
+
+    document.getElementById("sixes").innerText =
+        stat?.["Sixes"] || "-";
+
+    document.getElementById("sr").innerText =
+        stat?.["SR"] || "-";
+
+    document.getElementById("wickets").innerText =
+        stat?.["Wickets"] || "-";
+
+    document.getElementById("overs").innerText =
+        stat?.["Overs"] || "-";
+
+    document.getElementById("bavg").innerText =
+        stat?.["Bowling Avg"] || "-";
+
+    document.getElementById("bb").innerText =
+        stat?.["Best Bowling"] || "-";
+
+    document.getElementById("eco").innerText =
+        stat?.["Economy"] || "-";
+
+    const photo =
+        document.getElementById("playerPhoto");
+
+    photo.src = "Photos/" + cap + ".jpg";
+
+    photo.onerror = function(){
+        this.src =
+        "https://dummyimage.com/120x150/cccccc/000000&text=No+Photo";
+    };
 }
+
 </script>
 
 </body>
