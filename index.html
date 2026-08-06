@@ -1,37 +1,20 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>MCL Test</title>
-</head>
 <body>
 
-<h2>Player Lookup</h2>
+<h1>MCL Test</h1>
 
 <input id="cap">
 
-<button onclick="findPlayer()">Search</button>
+<button onclick="test()">Search</button>
 
-<div id="result"></div>
+<p id="result"></p>
 
 <script>
-
-const players = [
-  {cap:"8",name:"ULLAS"},
-  {cap:"3",name:"VAIRUMUDI"}
-];
-
-function findPlayer(){
-
-  let cap=document.getElementById("cap").value;
-
-  let p=players.find(x=>x.cap===cap);
-
-  if(p)
-    document.getElementById("result").innerHTML=p.name;
-  else
-    document.getElementById("result").innerHTML="Not found";
+function test() {
+ document.getElementById("result").innerHTML =
+   document.getElementById("cap").value;
 }
-
 </script>
 
 </body>
